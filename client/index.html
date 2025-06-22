@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>📁 MCP File Manager</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2d7ff9;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      color: #444;
+      margin-top: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="file"], input[type="text"] {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-right: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      background-color: #2d7ff9;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 0.25rem;
+    }
+
+    button:hover {
+      background-color: #1b5cd3;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .file-actions button {
+      margin-left: 0.5rem;
+      background-color: #e74c3c;
+    }
+
+    .file-actions button:hover {
+      background-color: #c0392b;
+    }
+
+    .input-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>📁 MCP File Manager</h1>
+
+  <h3>Upload Folder:</h3>
+  <div class="input-group">
+    <input type="file" id="folderInput" webkitdirectory directory multiple>
+    <button onclick="uploadFolder()">Upload</button>
+  </div>
+
+  <h3>Files:</h3>
+  <ul id="fileList"></ul>
+
+  <h3>Create/Edit File:</h3>
+  <div class="input-group">
+    <input id="filename" placeholder="filename.txt">
+    <button onclick="createFile()">Create</button>
+    <button onclick="editFile()">Edit</button>
+  </div>
+
+  <script>
+    async function uploadFolder() {
+      const input = document.getElementById('folderInput');
+      const formData = new FormData();
+      for (let file of input.files) {
+        formData.append("files", file);
+      }
+      await fetch('http://localhost:5000/upload', {
+        method: 'POST',
+        body: formData
+      });
+      alert("📁 Folder uploaded");
+      listFiles();
+    }
+
+    async function listFiles() {
+      const res = await fetch('http://localhost:5000/files');
+      const files = await res.json();
+      const list = document.getElementById('fileList');
+      list.innerHTML = "";
+      files.forEach(file => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          ${file}
+          <span class="file-actions">
+            <button onclick="deleteFile('${file}')">Delete</button>
+          </span>`;
+        list.appendChild(li);
+      });
+    }
+
+    async function createFile() {
+      const filename = document.getElementById('filename').value;
+      if (!filename) return alert("⚠️ Enter filename");
+      const content = prompt("Enter content for new file:");
+      if (content !== null) {
+        await fetch('http://localhost:5000/create', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ filename, content })
+        });
+        listFiles();
+      }
+    }
+
+    async function editFile() {
+      const filename = document.getElementById('filename').value;
+      if (!filename) return alert("⚠️ Enter filename");
+      const newContent = prompt("Enter new content:");
+      if (newContent !== null) {
+        await fetch('http://localhost:5000/edit', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ filename, newContent })
+        });
+        listFiles();
+      }
+    }
+
+    async function deleteFile(filename) {
+      const confirmDelete = confirm(`Are you sure you want to delete "${filename}"?`);
+      if (!confirmDelete) return;
+      await fetch(`http://localhost:5000/delete/${filename}`, {
+        method: 'DELETE'
+      });
+      listFiles();
+    }
+
+    window.onload = listFiles;
+  </script>
+
+</body>
+</html>
