@@ -4,6 +4,7 @@ This project is a simple full-stack file manager tool.
 It allows users to upload a folder and perform file operations such as create, edit, and delete via a web interface.
 
 🚀 Features
+
 ✅ Upload a folder of files to the server
 
 ✅ View all uploaded files
@@ -16,7 +17,8 @@ It allows users to upload a folder and perform file operations such as create, e
 
 ✅ Prompt-based editing for interactive changes
 
-Technologies Used
+Technologies Used : 
+
 Frontend: HTML, CSS, JavaScript (Vanilla)
 
 Backend: Node.js, Express.js
